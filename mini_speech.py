@@ -1,26 +1,25 @@
-# mini_speech.py — MINI Voice Interface (v1.0)
-# Connects with main_mini.py on localhost:8000 and handles speech input/output
-
 import speech_recognition as sr
 import pyttsx3
 import requests
 import json
 import time
 
-API_URL = "http://localhost:8000/api"
+# ✅ MINI Cloud Brain (Replit) endpoint
+API_URL = "https://2a61a383-a1eb-4f53-9149-7793d469704f-00-zd3ljsgy1lp7.sisko.replit.dev/api"
 
+# Initialize engines
 r = sr.Recognizer()
 engine = pyttsx3.init()
 
-# Choose UK Female voice if available
+# Voice setup (UK English, like Friday)
 voices = engine.getProperty('voices')
 for v in voices:
-    if "Hazel" in v.name or "Zira" in v.name or "English" in v.name:
+    if "Hazel" in v.name or "Zira" in v.name:
         engine.setProperty('voice', v.id)
 engine.setProperty('rate', 175)
 
 def speak(text):
-    print(f"MINI: {text}")
+    print("MINI:", text)
     engine.say(text)
     engine.runAndWait()
 
@@ -34,10 +33,10 @@ def listen():
         print(f"YOU: {text}")
         return text
     except sr.UnknownValueError:
-        speak("Sorry, I didn’t catch that Boss.")
+        speak("Sorry, I didn’t catch that.")
         return ""
     except sr.RequestError:
-        speak("Speech service is not responding.")
+        speak("Speech service error.")
         return ""
 
 def process_command(cmd):
@@ -45,19 +44,25 @@ def process_command(cmd):
     try:
         res = requests.post(API_URL, json=payload)
         data = json.loads(res.text)
-        reply = data.get("reply", "")
-        speak(reply)
+        audio_url = data.get("audio_url")
+        mood = data.get("mood", "")
+        lang = data.get("lang", "")
+        speak(f"(Mood: {mood})")
+        if audio_url:
+            speak("Done, boss.")
+        else:
+            speak(data.get("reply", "I didn’t understand that."))
     except Exception as e:
+        speak("Could not reach the cloud brain.")
         print("Error:", e)
-        speak("Could not reach the cloud brain right now.")
 
 if __name__ == "__main__":
     speak("Hello Boss, MINI is online and listening.")
     while True:
         query = listen().lower()
         if "stop" in query or "sleep" in query or "goodbye" in query:
-            speak("Going offline Boss. See you soon.")
+            speak("Going offline Boss.")
             break
         elif query:
             process_command(query)
-        time.sleep(0.4)
+        time.sleep(0.5)
