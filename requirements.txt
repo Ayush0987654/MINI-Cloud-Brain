@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+gtts
+pymongo
+python-multipart
+pydantic
+langdetect
+python-dotenv
+SpeechRecognition
+pyttsx3
+requests
+pyaudio
